@@ -1,6 +1,8 @@
 require_relative './upload_store'
 
 class PhotoClaimer
+  attr_writer :photo_source
+  attr_writer :upload_storage_source
 
   class FileNotFound < RuntimeError; end
 
@@ -13,46 +15,54 @@ class PhotoClaimer
   #
   # Returns a Photo instance.
   def claim
-    photo = create_record
-
-    delete_file
-
-    photo
+    photo_source.call(user_id: @user_id).tap do |photo|
+      # parent model must have identity before saving because the id
+      # is used for the file path.
+      begin
+        photo.file_data = tempfile # move `photo.file.store!(tempfile)` into Photo#store_file!
+        photo.save!
+      rescue Exception => e
+        photo.destroy
+        # logging?
+        raise e
+      end
+    end
   end
 
   private
 
-  def create_record
-    photo = Photo.create!(user_id: @user_id)
+  def photo_source
+    @photo_source ||= Photo.public_method(:create!)
+  end
 
-    # parent model must have identity before saving because the id
-    # is used for the file path.
-    photo.file.store!(tempfile)
-    photo.save!
-
-    photo
+  def upload_storage_source
+    @upload_storage_source ||= UploadStore.public_method(:get)
   end
 
   def tempfile
     tmp = Tempfile.new(@file_name)
-    tmp.write(uploaded_file.body)
+
+    stage_file do |file|
+      tmp.write(file.body)
+    end
+
     tmp.rewind
     tmp
-  end
-
-  def delete_file
-    uploaded_file.destroy
   end
 
   # Internal: Find the associated uploaded file.
   #
   # Returns: Fog::File instance.
   # Raises FileNotFound error when file cannot be located.
-  def uploaded_file
-    @uploaded_file ||= UploadStore.get(@file_name)
+  def stage_file(&block)
+    file = upload_storage_source.call(@file_name)
 
-    raise FileNotFound, "#{@file_name} not found" unless @uploaded_file
+    raise FileNotFound, "#{@file_name} not found" unless file
 
-    @uploaded_file
+    begin
+      block.call(file)
+    ensure
+      file.destroy
+    end
   end
 end
