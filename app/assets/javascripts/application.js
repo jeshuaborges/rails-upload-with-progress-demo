@@ -12,4 +12,26 @@
 //
 //= require jquery
 //= require jquery_ujs
+//= require vendor/jquery.ui.widget
+//= require vendor/jquery.iframe-transport
+//= require vendor/jquery.fileupload
 //= require_tree .
+//= require_self
+
+$(function () {
+    $('#fileupload').fileupload({
+        dataType: 'json',
+        add: function (e, data) {
+            data.context = $('<p/>').text('Uploading...').appendTo(document.body);
+            data.submit();
+        },
+        done: function (e, data) {
+            data.context.text('Upload finished.')
+
+            // Create photo objects for each uploaded object
+            $.each(data.files, function(i, file) {
+                $.post('/photos', {filename: file.name});
+            });
+        }
+    });
+});

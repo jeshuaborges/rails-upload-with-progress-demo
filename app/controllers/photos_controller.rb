@@ -12,12 +12,19 @@ class PhotosController < ApplicationController
   def create
     filename = params[:filename]
 
-    photo = PhotoClaimer.new(current_user.id, filename).claim
+    photo = PhotoClaimer.new(current_user_id, filename).claim
 
     render json: {status: 'success', photo: {id: photo.id} }
   end
 
   def index
     @photos = Photo.scoped_by_user_id(current_user.id)
+  end
+
+  private
+
+  def current_user_id
+    # here for demo
+    1
   end
 end
