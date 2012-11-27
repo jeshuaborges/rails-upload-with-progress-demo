@@ -20,6 +20,7 @@ gem 'carrierwave'
 group :development, :test do
   gem 'rspec-rails'
   gem 'pry-rails'
+  gem 'capybara'
 end
 
 # To use ActiveModel has_secure_password
