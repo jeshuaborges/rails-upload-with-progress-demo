@@ -14,9 +14,12 @@ group :assets do
 end
 
 gem 'jquery-rails'
+gem 'fog'
+gem 'carrierwave'
 
 group :development, :test do
   gem 'rspec-rails'
+  gem 'pry-rails'
 end
 
 # To use ActiveModel has_secure_password
