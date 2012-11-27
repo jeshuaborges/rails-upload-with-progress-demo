@@ -5,7 +5,7 @@ describe UploadsController, type: :controller do
 
   describe '#upload' do
     it 'uploads' do
-      post :create, :file => file_fixture
+      post :create, :files => [file_fixture]
 
       response.should be_success
     end

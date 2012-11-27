@@ -23,8 +23,8 @@ class PhotosController < ApplicationController
 
   private
 
+  # here for demo
   def current_user_id
-    # here for demo
     1
   end
 end
