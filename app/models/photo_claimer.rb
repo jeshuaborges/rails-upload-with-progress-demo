@@ -13,42 +13,47 @@ class PhotoClaimer
   #
   # Returns a Photo instance.
   def claim
-    photo = create_record
-
-    delete_file
-
-    photo
+    stage_file do |file|
+      create_record(file)
+    end
   end
 
   private
 
-  def create_record
-    photo = Photo.create!(user_id: @user_id)
-
-    # parent model must have identity before saving because the id
-    # is used for the file path.
-    photo.file.store!(tempfile)
-    photo.save!
-
-    photo
+  def create_record(file)
+    Photo.create_from_file!(@user_id, file)
   end
 
-  def tempfile
+  # Internal: Creates a tempfile to be read for creating the Photo object.
+  # Destroys the uploaded file from the UploadStore once block is left.
+  #
+  # Returns: yielded value.
+  def stage_file
+    uploaded = get_uploaded_file
+    tempfile = create_tempfile(uploaded.body)
+
+    begin
+      value = yield tempfile
+      uploaded.destroy
+      value
+    ensure
+      tempfile.close
+      tempfile.unlink
+    end
+  end
+
+  def create_tempfile(body)
     tmp = Tempfile.new(@file_name)
-    tmp.write(uploaded_file.body)
+    tmp.write(body)
     tmp.rewind
     tmp
-  end
-
-  def delete_file
-    uploaded_file.destroy
   end
 
   # Internal: Find the associated uploaded file.
   #
   # Returns: Fog::File instance.
   # Raises FileNotFound error when file cannot be located.
-  def uploaded_file
+  def get_uploaded_file
     @uploaded_file ||= UploadStore.get(@file_name)
 
     raise FileNotFound, "#{@file_name} not found" unless @uploaded_file

@@ -25,6 +25,11 @@ else
     !!(Rails.env.test? || Rails.env.cucumber?)
   end
 
+  temp_path = Rails.root.join('tmp')
+
+  # We cannot guarantee ./tmp path exists for all environments
+  FileUtils.mkdir_p(temp_path)
+
   CarrierWave.configure do |config|
     config.storage = :file
     config.enable_processing = enable_processing?
@@ -34,7 +39,7 @@ else
     config.fog_directory    = 'folder-name'
     config.fog_credentials  = {
       :provider   => 'Local',
-      :local_root => Rails.root.join('tmp')
+      :local_root => temp_path
     }
   end
 end

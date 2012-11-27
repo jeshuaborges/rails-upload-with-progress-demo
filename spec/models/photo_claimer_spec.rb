@@ -23,21 +23,10 @@ describe PhotoClaimer do
   end
 
   it 'creates a photo record' do
-    Photo.should_receive(:create!)
-    claimer.claim
-  end
+    file = double(:file).as_null_object
+    Tempfile.stub(:new) { file }
 
-  it 'assigns attaches uploaded file' do
-    tempfile  = double(:tempfile).as_null_object
-    uploader  = double(:uploader)
-    photo     = double(:photo, file: uploader)
-
-    Photo.stub!(:create!) { photo }
-    Tempfile.stub(:new) { tempfile }
-
-    uploader.should_receive(:store!).with(tempfile)
-    photo.should_receive(:save!)
-
+    Photo.should_receive(:create_from_file!).with(anything, file)
     claimer.claim
   end
 end
