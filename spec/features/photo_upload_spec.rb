@@ -8,6 +8,7 @@ describe 'photo upload' do
 
     visit '/photos/new'
     attach_file('fileupload', path)
+
     page.should have_content('Upload finished.')
   end
 end
