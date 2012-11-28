@@ -29,7 +29,7 @@ class PhotoClaimer
   #
   # Returns: yielded value.
   def stage_file
-    uploaded = get_uploaded_file
+    uploaded = retrieve_uploaded_file
     tempfile = create_tempfile(uploaded.body)
 
     begin
@@ -53,11 +53,11 @@ class PhotoClaimer
   #
   # Returns: Fog::File instance.
   # Raises FileNotFound error when file cannot be located.
-  def get_uploaded_file
-    @uploaded_file ||= UploadStore.get(@file_name)
+  def retrieve_uploaded_file
+    file = UploadStore.get(@file_name)
 
-    raise FileNotFound, "#{@file_name} not found" unless @uploaded_file
+    raise FileNotFound, "#{@file_name} not found" unless file
 
-    @uploaded_file
+    file
   end
 end
