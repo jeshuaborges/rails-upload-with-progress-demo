@@ -49,9 +49,11 @@ class UploadStore
 
   # Public: Retrieve file from location.
   #
-  # Returns a Fog file object.
+  # Returns a FileUpload file object.
   def get(filename)
-    directory.files.get(filename)
+    file = directory.files.get(filename)
+
+    file ? UploadFile.new(file) : nil
   end
 
   # Internal: creates upload directory.
