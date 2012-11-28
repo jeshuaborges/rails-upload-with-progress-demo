@@ -9,11 +9,6 @@ describe PhotoClaimer do
     stub_const('UploadStore', double(:uploadstore_class).as_null_object)
   end
 
-  it 'errors when file cannot be found' do
-    UploadStore.stub(:get) { nil }
-    expect{ claimer.claim }.to raise_error(PhotoClaimer::FileNotFound)
-  end
-
   it 'deletes the uploaded file' do
     file = double(:file).as_null_object
     UploadStore.stub(:get) { file }
@@ -23,20 +18,17 @@ describe PhotoClaimer do
   end
 
   it 'creates a photo record' do
-    Photo.should_receive(:create!)
-    claimer.claim
-  end
+    file = Class.new do
+      def tempfile
+        yield 'tempfile'
+      end
 
-  it 'assigns attaches uploaded file' do
-    tempfile  = double(:tempfile).as_null_object
-    uploader  = double(:uploader)
-    photo     = double(:photo, file: uploader)
+      def destroy; end
+    end.new
 
-    Photo.stub!(:create!) { photo }
-    Tempfile.stub(:new) { tempfile }
+    UploadStore.stub(:get) { file }
 
-    uploader.should_receive(:store!).with(tempfile)
-    photo.should_receive(:save!)
+    Photo.should_receive(:create_from_file!).with(anything, 'tempfile')
 
     claimer.claim
   end

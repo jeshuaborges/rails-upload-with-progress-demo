@@ -16,10 +16,4 @@ describe PhotosController, type: :controller do
       expect(Photo.last.user_id).to eq(1)
     end
   end
-
-  describe '#index' do
-    it 'returns a list of the users photos' do
-      pending
-    end
-  end
 end

@@ -11,12 +11,12 @@ if Rails.env.production?
   CarrierWave.configure do |config|
     config.storage         = :fog
     config.fog_credentials = fog_credentials
-    config.fog_directory   = 'permanent-bucket'
+    config.fog_directory   = 'worldly-web-photos'
   end
 
   UploadStore.configure do |config|
     config.fog_credentials = fog_credentials
-    config.fog_directory   = 'temporary-bucket'
+    config.fog_directory   = 'worldly-web-uploads'
   end
 
 else
@@ -25,21 +25,16 @@ else
     !!(Rails.env.test? || Rails.env.cucumber?)
   end
 
-  temp_path = Rails.root.join('tmp')
-
-  # We cannot guarantee ./tmp path exists for all environments
-  FileUtils.mkdir_p(temp_path)
-
   CarrierWave.configure do |config|
     config.storage = :file
     config.enable_processing = enable_processing?
   end
 
   UploadStore.configure do |config|
-    config.fog_directory    = 'folder-name'
+    config.fog_directory    = 'worldly-web-uploads'
     config.fog_credentials  = {
       :provider   => 'Local',
-      :local_root => temp_path
+      :local_root => Rails.root.join('tmp')
     }
   end
 end
